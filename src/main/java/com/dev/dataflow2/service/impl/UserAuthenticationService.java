@@ -1,0 +1,54 @@
+/**
+ * 
+ */
+package com.dev.dataflow2.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dev.dataflow2.dao.UserDao;
+import com.dev.dataflow2.exceptions.UnauthorizedUserException;
+import com.dev.dataflow2.exceptions.UserAlreadyExistsException;
+import com.dev.dataflow2.exceptions.UserNotFoundException;
+import com.dev.dataflow2.model.User;
+import com.dev.dataflow2.utils.PasswordUtils;
+
+/**
+ * @author tonyr
+ *
+ */
+@Service
+public class UserAuthenticationService {
+
+	@Autowired
+	UserDao userDao;
+
+	private static final int SALT_LENGTH = 30;
+
+	public int authenticateUser(String email, String password) {
+		List<User> users = userDao.getUsers();
+		User currentUser = users.isEmpty() ? null
+				: users.stream().filter(user -> user.getEmail().equals(email)).findFirst().orElse(null);
+		if (currentUser == null) {
+			throw new UserNotFoundException("User with email ::: " + email + " does not exist");
+		}
+		byte[] salt = currentUser.getSalt().getBytes();
+		if (!PasswordUtils.verifyPassword(password, currentUser.getPassword(), salt)) {
+			throw new UnauthorizedUserException("Incorrect password for user ::: " + email);
+		}
+		return currentUser.getUserid();
+	}
+
+	public int registerUser(User newUser) {
+		List<User> users = userDao.getUsers();
+		if (!users.isEmpty() && users.stream().anyMatch(user -> user.getEmail().equals(newUser.getEmail()))) {
+			throw new UserAlreadyExistsException("User with email ::: " + newUser.getEmail() + " already exists");
+		}
+		String salt = PasswordUtils.getSalt(SALT_LENGTH);
+		newUser.setSalt(new String(salt));
+		newUser.setPassword(PasswordUtils.encryptPassword(newUser.getPassword(), salt.getBytes()));
+		return userDao.createUser(newUser);
+	}
+}
