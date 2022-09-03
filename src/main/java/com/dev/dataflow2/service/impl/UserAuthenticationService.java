@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.dev.dataflow2.dao.UserDao;
-import com.dev.dataflow2.exceptions.UnauthorizedUserException;
-import com.dev.dataflow2.exceptions.UserAlreadyExistsException;
-import com.dev.dataflow2.exceptions.UserNotFoundException;
+import com.dev.dataflow2.exceptions.UnauthorizedUsageException;
+import com.dev.dataflow2.exceptions.ValueAlreadyExistsException;
+import com.dev.dataflow2.exceptions.ValueNotFoundException;
 import com.dev.dataflow2.model.User;
 import com.dev.dataflow2.utils.PasswordUtils;
 
@@ -28,15 +28,13 @@ public class UserAuthenticationService {
 	private static final int SALT_LENGTH = 30;
 
 	public int authenticateUser(String email, String password) {
-		List<User> users = userDao.getUsers();
-		User currentUser = users.isEmpty() ? null
-				: users.stream().filter(user -> user.getEmail().equals(email)).findFirst().orElse(null);
+		User currentUser = userDao.getUserByEmail(email);
 		if (currentUser == null) {
-			throw new UserNotFoundException("User with email ::: " + email + " does not exist");
+			throw new ValueNotFoundException("User with email ::: " + email + " does not exist");
 		}
 		byte[] salt = currentUser.getSalt().getBytes();
 		if (!PasswordUtils.verifyPassword(password, currentUser.getPassword(), salt)) {
-			throw new UnauthorizedUserException("Incorrect password for user ::: " + email);
+			throw new UnauthorizedUsageException("Incorrect password for user ::: " + email);
 		}
 		return currentUser.getUserid();
 	}
@@ -44,7 +42,7 @@ public class UserAuthenticationService {
 	public int registerUser(User newUser) {
 		List<User> users = userDao.getUsers();
 		if (!users.isEmpty() && users.stream().anyMatch(user -> user.getEmail().equals(newUser.getEmail()))) {
-			throw new UserAlreadyExistsException("User with email ::: " + newUser.getEmail() + " already exists");
+			throw new ValueAlreadyExistsException("User with email ::: " + newUser.getEmail() + " already exists");
 		}
 		String salt = PasswordUtils.getSalt(SALT_LENGTH);
 		newUser.setSalt(new String(salt));
