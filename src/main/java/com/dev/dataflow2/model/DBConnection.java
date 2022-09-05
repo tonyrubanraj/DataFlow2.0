@@ -87,4 +87,8 @@ public class DBConnection {
 		super();
 	}
 
+	public DBConnectionDto toDBConnectionDto() {
+		return new DBConnectionDto(this.dbType, this.url, this.username, this.password);
+	}
+
 }

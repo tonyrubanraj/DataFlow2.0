@@ -3,8 +3,13 @@
  */
 package com.dev.dataflow2.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.transaction.Transactional;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +20,8 @@ import com.dev.dataflow2.dto.UserConnectionsDto;
 import com.dev.dataflow2.exceptions.ValueAlreadyExistsException;
 import com.dev.dataflow2.model.DBConnection;
 import com.dev.dataflow2.model.UserConnections;
+import com.dev.dataflow2.service.DatabaseService;
+import com.dev.dataflow2.utils.DatabaseUtils;
 
 /**
  * @author tonyr
@@ -51,5 +58,58 @@ public class UserConnectionService {
 		} catch (Exception e) {
 			throw new RuntimeException("Error in saving the connection parameters for the user");
 		}
+	}
+
+	public List<String> getSchemas(int connectionId, String connectionType) {
+		List<String> schemas = new ArrayList<String>();
+		try {
+			UserConnections userConnection = userConnectionsDao.getUserConnectionById(connectionId);
+			DBConnection dbConnection = null;
+			if ("source".equalsIgnoreCase(connectionType))
+				dbConnection = userConnection.getSourceConnection();
+			else
+				dbConnection = userConnection.getDestinationConnection();
+			DatabaseService dbService = DatabaseUtils.getDBService(dbConnection.getDbType());
+			dbService.connect(dbConnection.toDBConnectionDto());
+			schemas = dbService.getSchemas();
+			dbService.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return schemas;
+	}
+
+	public List<String> getTables(int connectionId, String schema, String connectionType) {
+		List<String> tables = new ArrayList<String>();
+		try {
+			UserConnections userConnection = userConnectionsDao.getUserConnectionById(connectionId);
+			DBConnection dbConnection = null;
+			if ("source".equalsIgnoreCase(connectionType)) {
+				dbConnection = userConnection.getSourceConnection();
+			} else {
+				dbConnection = userConnection.getDestinationConnection();
+			}
+			DatabaseService dbService = DatabaseUtils.getDBService(dbConnection.getDbType());
+			dbService.connect(dbConnection.toDBConnectionDto());
+			dbService.setSchema(schema);
+			tables = dbService.getTables();
+			dbService.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return tables;
+	}
+
+	public JSONArray getConnections(int userId) {
+		List<UserConnections> userConnections = userConnectionsDao.getUserConnections();
+		JSONArray jsonArray = new JSONArray();
+		userConnections.forEach(userConnection -> {
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.put("id", userConnection.getConnectionid());
+			jsonObject.put("name", userConnection.getConnectionName());
+			jsonArray.put(jsonObject);
+		});
+		return jsonArray;
 	}
 }

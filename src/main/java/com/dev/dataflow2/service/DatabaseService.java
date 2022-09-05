@@ -4,8 +4,9 @@
 package com.dev.dataflow2.service;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.util.List;
+
+import org.json.JSONArray;
 
 import com.dev.dataflow2.dto.DBConnectionDto;
 
@@ -16,32 +17,30 @@ import com.dev.dataflow2.dto.DBConnectionDto;
 public abstract class DatabaseService {
 
 	protected Connection connection;
-	protected String database;
+	protected String schema;
 
 	public Connection getConnection() {
 		return connection;
 	}
 
-	public String getDatabase() {
-		return database;
+	public String getSchema() {
+		return schema;
 	}
 
-	public void setDatabase(String database) {
-		this.database = database;
+	public void setSchema(String schema) {
+		this.schema = schema;
 	}
 
 	public abstract Connection connect(DBConnectionDto dbConnection);
-	
+
 	public abstract void close();
 
-	public abstract List<String> getDatabases();
+	public abstract List<String> getSchemas();
 
 	public abstract List<String> getTables();
 
-	public abstract String getRecords(String table);
+	public abstract JSONArray getRecordsAsJson(String table);
 
-	public abstract boolean insertRecords(String table, ResultSet resultSet);
-
-	public abstract boolean migrateRecords(DatabaseService source, String sourceTable, String targetTable);
+	public abstract boolean insertRecordsFromJson(String table, JSONArray jsonArray);
 
 }
