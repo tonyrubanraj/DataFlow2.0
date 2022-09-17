@@ -12,25 +12,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.dataflow2.dto.JobDto;
-import com.dev.dataflow2.service.impl.JobService;
+import com.dev.dataflow2.dto.TransferJobsDto;
+import com.dev.dataflow2.service.impl.TransferJobsService;
 import com.dev.dataflow2.utils.Constants;
 
 @RestController
 @RequestMapping(path = "/job")
-public class JobController {
+public class TransferJobsController {
 
 	@Autowired
-	JobService jobService;
+	TransferJobsService transferJobService;
 
 	@PostMapping(path = "/migrate")
-	public ResponseEntity<String> migrate(@RequestBody JobDto jobDto, HttpSession session) {
+	public ResponseEntity<String> migrate(@RequestBody TransferJobsDto transferJobDto, HttpSession session) {
 		int userId = (int) session.getAttribute(Constants.USER_ID);
-		if (jobService.executeMigration(userId, jobDto))
+		if (transferJobService.executeMigration(userId, transferJobDto))
 			return new ResponseEntity<String>("successfully initiated migration job", HttpStatus.OK);
 		else {
-			int jobId = jobService.createJob(jobDto);
-			jobService.updateJob(jobId, "Failed");
+			int jobId = transferJobService.createTransferJob(userId, transferJobDto);
+			transferJobService.updateJob(jobId, "Failed");
 			return new ResponseEntity<String>("Error in initiating migration job", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -39,10 +39,10 @@ public class JobController {
 	public String fetchJobs(HttpSession session) {
 		int userId = (int) session.getAttribute(Constants.USER_ID);
 		try {
-			JSONArray jsonArray = jobService.getJobs(userId);
+			JSONArray jsonArray = transferJobService.getTransferJobs(userId);
 			return jsonArray.toString();
 		} catch (Exception e) {
-			System.err.println(e.getMessage());
+			e.printStackTrace();
 			return null;
 		}
 	}

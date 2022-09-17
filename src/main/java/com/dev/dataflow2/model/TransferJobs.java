@@ -19,16 +19,25 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(name = "job")
-public class Job {
+@Table(name = "transfer_jobs")
+public class TransferJobs {
 
 	@Id
+	@Column(name = "jobid")
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
-	private int jobid;
+	private int jobId;
 
 	@ManyToOne
-	@JoinColumn(name = "connectionid")
-	private UserConnections userConnection;
+	@JoinColumn(name = "userid")
+	private User user;
+
+	@ManyToOne
+	@JoinColumn(name = "sourceid")
+	private DBConnections sourceDBConnection;
+
+	@ManyToOne
+	@JoinColumn(name = "destinationid")
+	private DBConnections destinationDBConnection;
 
 	@Column(name = "sourcedatabase")
 	private String sourceDatabase;
@@ -54,12 +63,28 @@ public class Job {
 	@Column(name = "completedtimestamp")
 	private Date completedTimestamp;
 
-	public UserConnections getUserConnection() {
-		return userConnection;
+	public User getUser() {
+		return user;
 	}
 
-	public void setUserConnection(UserConnections userConnection) {
-		this.userConnection = userConnection;
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public DBConnections getSourceDBConnection() {
+		return sourceDBConnection;
+	}
+
+	public void setSourceDBConnection(DBConnections sourceDBConnection) {
+		this.sourceDBConnection = sourceDBConnection;
+	}
+
+	public DBConnections getDestinationDBConnection() {
+		return destinationDBConnection;
+	}
+
+	public void setDestinationDBConnection(DBConnections destinationDBConnection) {
+		this.destinationDBConnection = destinationDBConnection;
 	}
 
 	public String getSourceDatabase() {
@@ -126,14 +151,16 @@ public class Job {
 		this.completedTimestamp = completedTimestamp;
 	}
 
-	public int getJobid() {
-		return jobid;
+	public int getJobId() {
+		return jobId;
 	}
 
-	public Job(UserConnections userConnection, String sourceDatabase, String destinationDatabase, String sourceTables,
-			String destinationTables, String jobType, String status, Date createdTimestamp) {
-		super();
-		this.userConnection = userConnection;
+	public TransferJobs(User user, DBConnections sourceDBConnection, DBConnections destinationDBConnection,
+			String sourceDatabase, String destinationDatabase, String sourceTables, String destinationTables,
+			String jobType, String status, Date createdTimestamp, Date completedTimestamp) {
+		this.user = user;
+		this.sourceDBConnection = sourceDBConnection;
+		this.destinationDBConnection = destinationDBConnection;
 		this.sourceDatabase = sourceDatabase;
 		this.destinationDatabase = destinationDatabase;
 		this.sourceTables = sourceTables;
@@ -141,10 +168,19 @@ public class Job {
 		this.jobType = jobType;
 		this.status = status;
 		this.createdTimestamp = createdTimestamp;
+		this.completedTimestamp = completedTimestamp;
 	}
 
-	public Job() {
-		super();
+	public TransferJobs() {
+	}
+
+	@Override
+	public String toString() {
+		return "TransferJobs [jobId=" + jobId + ", user=" + user + ", sourceDBConnection=" + sourceDBConnection
+				+ ", destinationDBConnection=" + destinationDBConnection + ", sourceDatabase=" + sourceDatabase
+				+ ", destinationDatabase=" + destinationDatabase + ", sourceTables=" + sourceTables
+				+ ", destinationTables=" + destinationTables + ", jobType=" + jobType + ", status=" + status
+				+ ", createdTimestamp=" + createdTimestamp + ", completedTimestamp=" + completedTimestamp + "]";
 	}
 
 }

@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.dev.dataflow2.service.DatabaseService;
+import com.dev.dataflow2.service.impl.BigQueryService;
 import com.dev.dataflow2.service.impl.MySQLService;
 
 /**
@@ -27,6 +28,9 @@ public class DatabaseUtils {
 		}
 		case "aws_mysql": {
 			return new MySQLService();
+		}
+		case "bigquery": {
+			return new BigQueryService();
 		}
 		default:
 			return new MySQLService();

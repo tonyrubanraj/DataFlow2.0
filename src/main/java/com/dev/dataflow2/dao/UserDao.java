@@ -43,7 +43,7 @@ public class UserDao {
 		return users;
 	}
 
-	public User updateUser(User user, int id) {
+	public User updateUser(User user) {
 		return userRepository.save(user);
 	}
 

@@ -1,27 +1,9 @@
-package com.dev.dataflow2.dto;
+package com.dev.dataflow2.pojo;
 
-import java.io.Serializable;
-
-/**
- * @author tonyr
- *
- */
-public class DBConnectionDto implements Serializable {
-
-	private static final long serialVersionUID = 1L;
-
-	private String dbType;
+public class MySQLParameters {
 	private String url;
 	private String username;
 	private String password;
-
-	public String getDbType() {
-		return dbType;
-	}
-
-	public void setDbType(String dbType) {
-		this.dbType = dbType;
-	}
 
 	public String getUrl() {
 		return url;
@@ -47,12 +29,16 @@ public class DBConnectionDto implements Serializable {
 		this.password = password;
 	}
 
-	public DBConnectionDto(String dbType, String url, String username, String password) {
+	public MySQLParameters(String url, String username, String password) {
 		super();
-		this.dbType = dbType;
 		this.url = url;
 		this.username = username;
 		this.password = password;
+	}
+
+	@Override
+	public String toString() {
+		return "MySQLConnectionParameters [url=" + url + ", username=" + username + ", password=" + password + "]";
 	}
 
 }

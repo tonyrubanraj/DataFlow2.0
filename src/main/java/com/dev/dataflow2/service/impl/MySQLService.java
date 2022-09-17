@@ -3,7 +3,6 @@
  */
 package com.dev.dataflow2.service.impl;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,10 +16,12 @@ import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.dev.dataflow2.dto.DBConnectionDto;
+import com.dev.dataflow2.dto.DBConnectionsDto;
+import com.dev.dataflow2.pojo.MySQLParameters;
 import com.dev.dataflow2.service.DatabaseService;
 import com.dev.dataflow2.utils.Constants;
 import com.dev.dataflow2.utils.DatabaseUtils;
+import com.google.gson.Gson;
 
 /**
  * @author tonyr
@@ -29,16 +30,20 @@ import com.dev.dataflow2.utils.DatabaseUtils;
 public class MySQLService extends DatabaseService {
 
 	@Override
-	public Connection connect(DBConnectionDto dbConnectionDto) {
+	public boolean connect(DBConnectionsDto dbConnection) {
 		try {
 			Class.forName(Constants.JDBC_CONNECTION);
-			this.connection = DriverManager.getConnection(dbConnectionDto.getUrl(), dbConnectionDto.getUsername(),
-					dbConnectionDto.getPassword());
+			Gson gson = new Gson();
+			MySQLParameters mySqlConnection = gson.fromJson(dbConnection.getConnectionParameters(),
+					MySQLParameters.class);
+			this.connection = DriverManager.getConnection(mySqlConnection.getUrl(), mySqlConnection.getUsername(),
+					mySqlConnection.getPassword());
+			return this.connection != null ? true : false;
 		} catch (Exception e) {
 			e.printStackTrace();
 			this.connection = null;
 		}
-		return this.connection;
+		return false;
 	}
 
 	@Override
@@ -95,7 +100,7 @@ public class MySQLService extends DatabaseService {
 				int columnCount = jsonArray.getJSONObject(0).length();
 				List<String> columns = new ArrayList<>(jsonArray.getJSONObject(0).keySet());
 				String query = String.format(
-						"insert into %s.%s(" + columns.stream().collect(Collectors.joining(", ")) + ") values ("
+						"insert into `%s`.%s(" + columns.stream().collect(Collectors.joining(", ")) + ") values ("
 								+ columns.stream().map(column -> "?").collect(Collectors.joining(", ")) + ")",
 						schema, table);
 				PreparedStatement preparedStatement = connection.prepareStatement(query);

@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.json.JSONArray;
 
-import com.dev.dataflow2.dto.DBConnectionDto;
+import com.dev.dataflow2.dto.DBConnectionsDto;
 
 /**
  * @author tonyr
@@ -31,7 +31,7 @@ public abstract class DatabaseService {
 		this.schema = schema;
 	}
 
-	public abstract Connection connect(DBConnectionDto dbConnection);
+	public abstract boolean connect(DBConnectionsDto dbConnection);
 
 	public abstract void close();
 

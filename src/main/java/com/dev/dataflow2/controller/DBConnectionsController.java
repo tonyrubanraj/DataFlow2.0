@@ -13,17 +13,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.dataflow2.dto.DBConnectionDto;
-import com.dev.dataflow2.dto.UserConnectionsDto;
+import com.dev.dataflow2.dto.DBConnectionsDto;
 import com.dev.dataflow2.service.DatabaseService;
-import com.dev.dataflow2.service.impl.UserConnectionService;
+import com.dev.dataflow2.service.impl.DBConnectionService;
 import com.dev.dataflow2.utils.Constants;
 import com.dev.dataflow2.utils.DatabaseUtils;
 
@@ -33,15 +31,15 @@ import com.dev.dataflow2.utils.DatabaseUtils;
  */
 @RestController
 @RequestMapping("/connection")
-public class DBConnectionController {
+public class DBConnectionsController {
 
 	@Autowired
-	UserConnectionService userConnectionService;
+	DBConnectionService dbConnectionService;
 
 	@PostMapping(path = "/test")
-	public ResponseEntity<String> testDBConnection(@RequestBody DBConnectionDto dbConnection) {
+	public ResponseEntity<String> testDBConnection(@RequestBody DBConnectionsDto dbConnection) {
 		DatabaseService dbService = DatabaseUtils.getDBService(dbConnection.getDbType());
-		if (dbService.connect(dbConnection) == null) {
+		if (!dbService.connect(dbConnection)) {
 			return new ResponseEntity<>("DB connection failure", HttpStatus.BAD_REQUEST);
 		}
 		dbService.close();
@@ -49,37 +47,34 @@ public class DBConnectionController {
 	}
 
 	@PostMapping(path = "/save")
-	public ResponseEntity<String> saveDBConnection(@RequestBody UserConnectionsDto userConnectionsDto,
-			HttpSession session) {
-		userConnectionService.saveUserConnections(userConnectionsDto, (int) session.getAttribute(Constants.USER_ID));
-		return new ResponseEntity<>("User DB Connection saved successfully", HttpStatus.OK);
+	public ResponseEntity<String> saveDBConnection(@RequestBody DBConnectionsDto dbConnection, HttpSession session) {
+		dbConnectionService.saveDBConnections(dbConnection, (int) session.getAttribute(Constants.USER_ID));
+		return new ResponseEntity<>("DB Connection saved successfully", HttpStatus.OK);
 	}
 
 	@GetMapping(path = "/list")
 	public String fetchConnections(HttpSession session) {
 		int userId = (int) session.getAttribute(Constants.USER_ID);
 		try {
-			JSONArray jsonArray = userConnectionService.getConnections(userId);
+			JSONArray jsonArray = dbConnectionService.getDBConnections(userId);
 			return jsonArray.toString();
-		}catch (Exception e) {
-			System.err.println(e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
 			return null;
 		}
 	}
-	
-	@GetMapping(path = "/{connectionType}/schemas")
-	public List<String> fetchSchemas(@RequestParam int connectionId,
-			@PathVariable(value = "connectionType") String connectionType) {
-		if(connectionId == -1)
+
+	@GetMapping(path = "/schemas")
+	public List<String> fetchSchemas(@RequestParam int connectionId) {
+		if (connectionId == -1)
 			return new ArrayList<String>();
-		return userConnectionService.getSchemas(connectionId, connectionType);
+		return dbConnectionService.getSchemas(connectionId);
 	}
 
-	@GetMapping(path = "/{connectionType}/tables")
-	public List<String> fetchTables(@RequestParam int connectionId, @RequestParam String schema,
-			@PathVariable(value = "connectionType") String connectionType) {
-		if(connectionId == -1)
+	@GetMapping(path = "/tables")
+	public List<String> fetchTables(@RequestParam int connectionId, @RequestParam String schema) {
+		if (connectionId == -1)
 			return new ArrayList<String>();
-		return userConnectionService.getTables(connectionId, schema, connectionType);
+		return dbConnectionService.getTables(connectionId, schema);
 	}
 }

@@ -9,21 +9,30 @@ import java.util.List;
  * @author tonyr
  *
  */
-public class JobDto {
+public class TransferJobsDto {
 
-	private int connectionId;
+	private int sourceId;
+	private int destinationId;
 	private String sourceSchema;
 	private String destinationSchema;
 	private List<String> sourceTables;
 	private List<String> destinationTables;
 	private String jobType;
 
-	public int getConnectionId() {
-		return connectionId;
+	public int getSourceId() {
+		return sourceId;
 	}
 
-	public void setConnectionId(int connectionId) {
-		this.connectionId = connectionId;
+	public void setSourceId(int sourceId) {
+		this.sourceId = sourceId;
+	}
+
+	public int getDestinationId() {
+		return destinationId;
+	}
+
+	public void setDestinationId(int destinationId) {
+		this.destinationId = destinationId;
 	}
 
 	public String getSourceSchema() {
@@ -66,19 +75,22 @@ public class JobDto {
 		this.jobType = jobType;
 	}
 
-	public JobDto(int connectionId, String sourceDatabase, String destinationDatabase, List<String> sourceTables,
-			List<String> destinationTables, String jobType) {
-		super();
-		this.connectionId = connectionId;
-		this.sourceSchema = sourceDatabase;
-		this.destinationSchema = destinationDatabase;
+	public TransferJobsDto(int sourceId, int destinationId, String sourceSchema, String destinationSchema,
+			List<String> sourceTables, List<String> destinationTables, String jobType) {
+		this.sourceId = sourceId;
+		this.destinationId = destinationId;
+		this.sourceSchema = sourceSchema;
+		this.destinationSchema = destinationSchema;
 		this.sourceTables = sourceTables;
 		this.destinationTables = destinationTables;
 		this.jobType = jobType;
 	}
 
-	public JobDto() {
-		super();
+	@Override
+	public String toString() {
+		return "TransferJobsDto [sourceId=" + sourceId + ", destinationId=" + destinationId + ", sourceSchema="
+				+ sourceSchema + ", destinationSchema=" + destinationSchema + ", sourceTables=" + sourceTables
+				+ ", destinationTables=" + destinationTables + ", jobType=" + jobType + "]";
 	}
 
 }

@@ -5,12 +5,12 @@ package com.dev.dataflow2.service;
 
 import org.springframework.data.repository.CrudRepository;
 
-import com.dev.dataflow2.model.Job;
+import com.dev.dataflow2.model.DBConnections;
 
 /**
  * @author tonyr
  *
  */
-public interface JobRepository extends CrudRepository<Job, Integer> {
+public interface DBConnectionsRepository extends CrudRepository<DBConnections, Integer> {
 
 }
