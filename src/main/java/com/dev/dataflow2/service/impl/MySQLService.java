@@ -21,7 +21,6 @@ import com.dev.dataflow2.pojo.MySQLParameters;
 import com.dev.dataflow2.service.DatabaseService;
 import com.dev.dataflow2.utils.Constants;
 import com.dev.dataflow2.utils.DatabaseUtils;
-import com.google.gson.Gson;
 
 /**
  * @author tonyr
@@ -33,9 +32,8 @@ public class MySQLService extends DatabaseService {
 	public boolean connect(DBConnectionsDto dbConnection) {
 		try {
 			Class.forName(Constants.JDBC_CONNECTION);
-			Gson gson = new Gson();
-			MySQLParameters mySqlConnection = gson.fromJson(dbConnection.getConnectionParameters(),
-					MySQLParameters.class);
+			MySQLParameters mySqlConnection = (MySQLParameters) DatabaseUtils
+					.getConnectionParamsMap(dbConnection.getDbType(), dbConnection.getConnectionParameters());
 			this.connection = DriverManager.getConnection(mySqlConnection.getUrl(), mySqlConnection.getUsername(),
 					mySqlConnection.getPassword());
 			return this.connection != null ? true : false;

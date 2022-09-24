@@ -26,13 +26,24 @@ public class TransferJobsController {
 	@PostMapping(path = "/migrate")
 	public ResponseEntity<String> migrate(@RequestBody TransferJobsDto transferJobDto, HttpSession session) {
 		int userId = (int) session.getAttribute(Constants.USER_ID);
-		if (transferJobService.executeMigration(userId, transferJobDto))
+		boolean status = true;
+		if ("Bulk".equals(transferJobDto.getJobType())) {
+			status = transferJobService.executeMigration(userId, transferJobDto);
+		} else {
+			status = transferJobService.executeCDC(userId, transferJobDto);
+		}
+		if (status)
 			return new ResponseEntity<String>("successfully initiated migration job", HttpStatus.OK);
 		else {
-			int jobId = transferJobService.createTransferJob(userId, transferJobDto);
-			transferJobService.updateJob(jobId, "Failed");
+			transferJobService.createTransferJob(userId, transferJobDto, "Failed");
 			return new ResponseEntity<String>("Error in initiating migration job", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@PostMapping(path = "/cdc/stop")
+	public int cdcStop() {
+		transferJobService.stopCDC();
+		return 1;
 	}
 
 	@GetMapping(path = "/list")

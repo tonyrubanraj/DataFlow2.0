@@ -73,6 +73,11 @@
     		<groupId>com.google.cloud</groupId>
    			 <artifactId>google-cloud-bigquery</artifactId>
   		</dependency>
+  		<dependency>
+		    <groupId>com.zendesk</groupId>
+		    <artifactId>mysql-binlog-connector-java</artifactId>
+		    <version>0.25.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

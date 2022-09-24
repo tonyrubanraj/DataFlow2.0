@@ -47,7 +47,7 @@ public class TransferJobsService {
 				&& sourceTables.size() == destinationTables.size()) {
 			sourceDBService.setSchema(transferJobsDto.getSourceSchema());
 			destinationDBService.setSchema(transferJobsDto.getDestinationSchema());
-			int jobId = createTransferJob(userId, transferJobsDto);
+			int jobId = createTransferJob(userId, transferJobsDto, "Started");
 			boolean jobStatus = true;
 			for (int i = 0; i < sourceTables.size(); i++) {
 				JSONArray sourceRecords = sourceDBService.getRecordsAsJson(sourceTables.get(i));
@@ -63,7 +63,24 @@ public class TransferJobsService {
 		return false;
 	}
 
-	public int createTransferJob(int userId, TransferJobsDto transferJobsDto) {
+	public boolean executeCDC(int userId, TransferJobsDto transferJobsDto) {
+		CDCService cdcService = new CDCService(dbConnectionsDao, transferJobsDto);
+		cdcService.setName("1");
+		cdcService.start();
+		return true;
+	}
+
+	public boolean stopCDC() {
+		for (Thread currentThread : Thread.getAllStackTraces().keySet()) {
+			if (currentThread.getName().equals("1")) {
+				System.out.println("currently active thread found");
+				currentThread.interrupt();
+			}
+		}
+		return true;
+	}
+
+	public int createTransferJob(int userId, TransferJobsDto transferJobsDto, String status) {
 		TransferJobs transferJob = new TransferJobs();
 		transferJob.setUser(userDao.getUserById(userId));
 		transferJob.setSourceDBConnection(dbConnectionsDao.getDBConnectionById(transferJobsDto.getSourceId()));
@@ -74,7 +91,7 @@ public class TransferJobsService {
 		transferJob.setSourceTables(transferJobsDto.getSourceTables().toString());
 		transferJob.setDestinationTables(transferJobsDto.getDestinationTables().toString());
 		transferJob.setJobType(transferJobsDto.getJobType());
-		transferJob.setStatus("Started");
+		transferJob.setStatus(status);
 		transferJob.setCreatedTimestamp(new Date());
 		return transferJobsDao.createTransferJob(transferJob);
 	}

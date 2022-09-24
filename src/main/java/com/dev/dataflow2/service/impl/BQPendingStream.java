@@ -26,7 +26,7 @@ import com.google.cloud.bigquery.storage.v1.WriteStream;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.Descriptors.DescriptorValidationException;
 
-public class WritePendingStream {
+public class BQPendingStream {
 
 	private static final long BATCH_SIZE = 1000;
 

@@ -11,9 +11,15 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.dev.dataflow2.pojo.BigQueryParameters;
+import com.dev.dataflow2.pojo.MySQLParameters;
+import com.dev.dataflow2.service.DatabaseCDCService;
 import com.dev.dataflow2.service.DatabaseService;
+import com.dev.dataflow2.service.impl.BigQueryCDCService;
 import com.dev.dataflow2.service.impl.BigQueryService;
+import com.dev.dataflow2.service.impl.MySQLCDCService;
 import com.dev.dataflow2.service.impl.MySQLService;
+import com.google.gson.Gson;
 
 /**
  * @author tonyr
@@ -34,6 +40,22 @@ public class DatabaseUtils {
 		}
 		default:
 			return new MySQLService();
+		}
+	}
+
+	public static DatabaseCDCService getDBCDCService(String dbType) {
+		switch (dbType) {
+		case "mysql": {
+			return new MySQLCDCService();
+		}
+		case "aws_mysql": {
+			return new MySQLCDCService();
+		}
+		case "bigquery": {
+			return new BigQueryCDCService();
+		}
+		default:
+			return new MySQLCDCService();
 		}
 	}
 
@@ -67,5 +89,22 @@ public class DatabaseUtils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public static Object getConnectionParamsMap(String connectionType, String connectionParam) {
+		Gson gson = new Gson();
+		switch (connectionType) {
+		case "mysql": {
+			return gson.fromJson(connectionParam, MySQLParameters.class);
+		}
+		case "aws_mysql": {
+			return gson.fromJson(connectionParam, MySQLParameters.class);
+		}
+		case "bigquery": {
+			return gson.fromJson(connectionParam, BigQueryParameters.class);
+		}
+		default:
+			return null;
+		}
 	}
 }

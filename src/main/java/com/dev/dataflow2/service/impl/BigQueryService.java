@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import com.dev.dataflow2.dto.DBConnectionsDto;
 import com.dev.dataflow2.pojo.BigQueryParameters;
 import com.dev.dataflow2.service.DatabaseService;
+import com.dev.dataflow2.utils.DatabaseUtils;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -25,7 +26,6 @@ import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.bigquery.storage.v1.BigQueryWriteClient;
 import com.google.cloud.bigquery.storage.v1.BigQueryWriteSettings;
-import com.google.gson.Gson;
 import com.google.protobuf.Descriptors.DescriptorValidationException;
 
 public class BigQueryService extends DatabaseService {
@@ -41,9 +41,8 @@ public class BigQueryService extends DatabaseService {
 	@Override
 	public boolean connect(DBConnectionsDto dbConnection) {
 		try {
-			Gson gson = new Gson();
-			BigQueryParameters bigQueryParameters = gson.fromJson(dbConnection.getConnectionParameters(),
-					BigQueryParameters.class);
+			BigQueryParameters bigQueryParameters = (BigQueryParameters) DatabaseUtils
+					.getConnectionParamsMap(dbConnection.getDbType(), dbConnection.getConnectionParameters());
 			this.credentials = ServiceAccountCredentials.fromPkcs8(bigQueryParameters.getClient_id(),
 					bigQueryParameters.getClient_email(), bigQueryParameters.getPrivate_key(),
 					bigQueryParameters.getPrivate_key_id(), null);
@@ -108,7 +107,8 @@ public class BigQueryService extends DatabaseService {
 					.setCredentialsProvider(FixedCredentialsProvider.create(this.credentials)).build();
 			BigQueryWriteClient bigQueryWriteClient = BigQueryWriteClient.create(bigQueryWriteSettings);
 
-			WritePendingStream.writePendingStream(bigQueryWriteClient, this.projectId, this.schema, table, jsonArray);
+			BQCommittedStream.runWriteCommittedStream(bigQueryWriteClient, this.projectId, this.schema, table, jsonArray);
+//			BQPendingStream.writePendingStream(bigQueryWriteClient, this.projectId, this.schema, table, jsonArray);
 			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
