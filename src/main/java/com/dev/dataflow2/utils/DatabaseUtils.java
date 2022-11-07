@@ -6,7 +6,9 @@ package com.dev.dataflow2.utils;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,20 +29,12 @@ import com.google.gson.Gson;
  */
 public class DatabaseUtils {
 
-	public static DatabaseService getDBService(String dbType) {
-		switch (dbType) {
-		case "mysql": {
-			return new MySQLService();
-		}
-		case "aws_mysql": {
-			return new MySQLService();
-		}
-		case "bigquery": {
-			return new BigQueryService();
-		}
-		default:
-			return new MySQLService();
-		}
+	public static Map<String, DatabaseService> getDBServices() {
+		Map<String, DatabaseService> databaseService = new HashMap<String, DatabaseService>();
+		databaseService.put("mysql", new MySQLService());
+		databaseService.put("aws_mysql", new MySQLService());
+		databaseService.put("bigquery", new BigQueryService());
+		return databaseService;
 	}
 
 	public static DatabaseCDCService getDBCDCService(String dbType) {

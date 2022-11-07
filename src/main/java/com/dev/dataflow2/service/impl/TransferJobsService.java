@@ -27,32 +27,30 @@ import com.dev.dataflow2.utils.DatabaseUtils;
 @Service
 public class TransferJobsService {
 	@Autowired
-	DBConnectionsDao dbConnectionsDao;
+	DBConnectionsDao dbConnections;
 
 	@Autowired
-	TransferJobsDao transferJobsDao;
+	TransferJobsDao transferJobs;
 
 	@Autowired
-	UserDao userDao;
+	UserDao users;
 
 	public boolean executeMigration(int userId, TransferJobsDto transferJobsDto) {
-		DBConnections source = dbConnectionsDao.getDBConnectionById(transferJobsDto.getSourceId());
-		DBConnections destination = dbConnectionsDao.getDBConnectionById(transferJobsDto.getDestinationId());
-		DatabaseService sourceDBService = DatabaseUtils.getDBService(source.getDbType());
-		DatabaseService destinationDBService = DatabaseUtils.getDBService(destination.getDbType());
+		DBConnections source = dbConnections.getById(transferJobsDto.getSourceId());
+		DBConnections destination = dbConnections.getById(transferJobsDto.getDestinationId());
+		DatabaseService sourceDBService = DatabaseUtils.getDBServices().get(source.getDbType());
+		DatabaseService destinationDBService = DatabaseUtils.getDBServices().get(destination.getDbType());
 		List<String> sourceTables = transferJobsDto.getSourceTables();
 		List<String> destinationTables = transferJobsDto.getDestinationTables();
-		if (sourceDBService.connect(source.toDBConnectionsDto())
-				&& destinationDBService.connect(destination.toDBConnectionsDto())
+		if (sourceDBService.connect(source.getConnectionParameters())
+				&& destinationDBService.connect(destination.getConnectionParameters())
 				&& sourceTables.size() == destinationTables.size()) {
-			sourceDBService.setSchema(transferJobsDto.getSourceSchema());
-			destinationDBService.setSchema(transferJobsDto.getDestinationSchema());
 			int jobId = createTransferJob(userId, transferJobsDto, "Started");
 			boolean jobStatus = true;
 			for (int i = 0; i < sourceTables.size(); i++) {
-				JSONArray sourceRecords = sourceDBService.getRecordsAsJson(sourceTables.get(i));
+				JSONArray sourceRecords = sourceDBService.getRecordsAsJson(transferJobsDto.getSourceSchema(), sourceTables.get(i));
 				jobStatus = jobStatus
-						&& destinationDBService.insertRecordsFromJson(destinationTables.get(i), sourceRecords);
+						&& destinationDBService.insertRecordsFromJson(transferJobsDto.getDestinationSchema(), destinationTables.get(i), sourceRecords);
 			}
 			if (jobStatus)
 				updateJob(jobId, "Completed");
@@ -64,7 +62,7 @@ public class TransferJobsService {
 	}
 
 	public boolean executeCDC(int userId, TransferJobsDto transferJobsDto) {
-		CDCService cdcService = new CDCService(dbConnectionsDao, transferJobsDto);
+		CDCService cdcService = new CDCService(dbConnections, transferJobsDto);
 		cdcService.setName("1");
 		cdcService.start();
 		return true;
@@ -82,10 +80,10 @@ public class TransferJobsService {
 
 	public int createTransferJob(int userId, TransferJobsDto transferJobsDto, String status) {
 		TransferJobs transferJob = new TransferJobs();
-		transferJob.setUser(userDao.getUserById(userId));
-		transferJob.setSourceDBConnection(dbConnectionsDao.getDBConnectionById(transferJobsDto.getSourceId()));
+		transferJob.setUser(users.getById(userId));
+		transferJob.setSourceDBConnection(dbConnections.getById(transferJobsDto.getSourceId()));
 		transferJob
-				.setDestinationDBConnection(dbConnectionsDao.getDBConnectionById(transferJobsDto.getDestinationId()));
+				.setDestinationDBConnection(dbConnections.getById(transferJobsDto.getDestinationId()));
 		transferJob.setSourceDatabase(transferJobsDto.getSourceSchema());
 		transferJob.setDestinationDatabase(transferJobsDto.getDestinationSchema());
 		transferJob.setSourceTables(transferJobsDto.getSourceTables().toString());
@@ -93,20 +91,20 @@ public class TransferJobsService {
 		transferJob.setJobType(transferJobsDto.getJobType());
 		transferJob.setStatus(status);
 		transferJob.setCreatedTimestamp(new Date());
-		return transferJobsDao.createTransferJob(transferJob);
+		return transferJobs.create(transferJob);
 	}
 
 	public int updateJob(int jobId, String status) {
-		TransferJobs transferJob = transferJobsDao.getTransferJobById(jobId);
+		TransferJobs transferJob = transferJobs.getById(jobId);
 		transferJob.setStatus(status);
 		transferJob.setCompletedTimestamp(new Date());
-		return transferJobsDao.updateTransferJob(transferJob);
+		return transferJobs.update(transferJob);
 	}
 
 	public JSONArray getTransferJobs(int userId) {
-		List<TransferJobs> transferJobs = transferJobsDao.getTransferJobsByUserId(userId);
+		List<TransferJobs> jobs = transferJobs.getByUserId(userId);
 		JSONArray jsonArray = new JSONArray();
-		transferJobs.forEach(transferJob -> {
+		jobs.forEach(transferJob -> {
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("id", transferJob.getJobId());
 			jsonObject.put("sourceConnectionName", transferJob.getSourceDBConnection().getConnectionName());

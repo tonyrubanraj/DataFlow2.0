@@ -13,7 +13,7 @@ public class CDCService extends Thread {
 	TransferJobsDto transferJobsDto;
 
 	public CDCService(DBConnectionsDao dbConnectionsDao, TransferJobsDto transferJobsDto) {
-		DBConnections source = dbConnectionsDao.getDBConnectionById(transferJobsDto.getSourceId());
+		DBConnections source = dbConnectionsDao.getById(transferJobsDto.getSourceId());
 		this.dbCDCService = DatabaseUtils.getDBCDCService(source.getDbType());
 		this.dbConnectionsDao = dbConnectionsDao;
 		this.transferJobsDto = transferJobsDto;

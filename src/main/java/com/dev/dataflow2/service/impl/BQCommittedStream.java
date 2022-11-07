@@ -126,10 +126,6 @@ public class BQCommittedStream {
 			System.out.println("Rows written: " + finalizeResponse.getRowCount());
 		}
 
-		public String getStreamName() {
-			return streamWriter.getStreamName();
-		}
-
 		static class AppendCompleteCallback implements ApiFutureCallback<AppendRowsResponse> {
 
 			private final DataWriter parent;

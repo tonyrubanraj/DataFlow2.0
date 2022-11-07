@@ -22,32 +22,32 @@ import com.dev.dataflow2.utils.DatabaseUtils;
 public class DBConnectionService {
 
 	@Autowired
-	DBConnectionsDao dbConnectionsDao;
+	private DBConnectionsDao dbConnections;
 
 	@Autowired
-	UserDao userDao;
+	private UserDao users;
 
 	@Transactional
 	public int saveDBConnections(DBConnectionsDto dbConnectionsDto, int userId) {
 		String connectionName = dbConnectionsDto.getConnectionName();
-		if (dbConnectionsDao.isDBConnectionExist(userId, connectionName)) {
+		if (dbConnections.exists(userId, connectionName)) {
 			throw new ValueAlreadyExistsException(
 					"Connection name ::: " + connectionName + " already exists for the user");
 		}
 		try {
 			DBConnections dbConnection = new DBConnections(dbConnectionsDto.getConnectionName(),
-					userDao.getUserById(userId), dbConnectionsDto.getDbType(),
+					users.getById(userId), dbConnectionsDto.getDbType(),
 					dbConnectionsDto.getConnectionParameters());
-			return dbConnectionsDao.createDBConnection(dbConnection);
+			return dbConnections.create(dbConnection);
 		} catch (Exception e) {
 			throw new RuntimeException("Error in saving the connection parameters for the user");
 		}
 	}
 
 	public JSONArray getDBConnections(int userId) {
-		List<DBConnections> dbConnections = dbConnectionsDao.getDBConnectionsByUserId(userId);
+		List<DBConnections> connections = dbConnections.getByUserId(userId);
 		JSONArray jsonArray = new JSONArray();
-		dbConnections.forEach(dbConnection -> {
+		connections.forEach(dbConnection -> {
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("id", dbConnection.getConnectionId());
 			jsonObject.put("name", dbConnection.getConnectionName());
@@ -59,9 +59,9 @@ public class DBConnectionService {
 	public List<String> getSchemas(int connectionId) {
 		List<String> schemas = new ArrayList<String>();
 		try {
-			DBConnections dbConnection = dbConnectionsDao.getDBConnectionById(connectionId);
-			DatabaseService dbService = DatabaseUtils.getDBService(dbConnection.getDbType());
-			if (dbService.connect(dbConnection.toDBConnectionsDto())) {
+			DBConnections dbConnection = dbConnections.getById(connectionId);
+			DatabaseService dbService = DatabaseUtils.getDBServices().get(dbConnection.getDbType());
+			if (dbService.connect(dbConnection.getConnectionParameters())) {
 				schemas = dbService.getSchemas();
 				dbService.close();
 			}
@@ -74,11 +74,10 @@ public class DBConnectionService {
 	public List<String> getTables(int connectionId, String schema) {
 		List<String> tables = new ArrayList<String>();
 		try {
-			DBConnections dbConnection = dbConnectionsDao.getDBConnectionById(connectionId);
-			DatabaseService dbService = DatabaseUtils.getDBService(dbConnection.getDbType());
-			if (dbService.connect(dbConnection.toDBConnectionsDto())) {
-				dbService.setSchema(schema);
-				tables = dbService.getTables();
+			DBConnections dbConnection = dbConnections.getById(connectionId);
+			DatabaseService dbService = DatabaseUtils.getDBServices().get(dbConnection.getDbType());
+			if (dbService.connect(dbConnection.getConnectionParameters())) {
+				tables = dbService.getTables(schema);
 				dbService.close();
 			}
 		} catch (Exception e) {

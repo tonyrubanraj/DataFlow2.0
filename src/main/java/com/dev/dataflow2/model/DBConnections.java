@@ -12,8 +12,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.dev.dataflow2.dto.DBConnectionsDto;
-
 /**
  * @author tonyr
  *
@@ -88,9 +86,9 @@ public class DBConnections {
 		this.connectionParameters = connectionParameters;
 	}
 
-	public DBConnectionsDto toDBConnectionsDto() {
-		return new DBConnectionsDto(this.connectionName, this.dbType, this.connectionParameters);
-	}
+//	public DBConnectionsDto toDBConnectionsDto() {
+//		return new DBConnectionsDto(this.connectionName, this.dbType, this.connectionParameters);
+//	}
 
 	@Override
 	public String toString() {

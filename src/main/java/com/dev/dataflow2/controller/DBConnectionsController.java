@@ -34,12 +34,12 @@ import com.dev.dataflow2.utils.DatabaseUtils;
 public class DBConnectionsController {
 
 	@Autowired
-	DBConnectionService dbConnectionService;
+	private DBConnectionService dbConnectionService;
 
 	@PostMapping(path = "/test")
 	public ResponseEntity<String> testDBConnection(@RequestBody DBConnectionsDto dbConnection) {
-		DatabaseService dbService = DatabaseUtils.getDBService(dbConnection.getDbType());
-		if (!dbService.connect(dbConnection)) {
+		DatabaseService dbService = DatabaseUtils.getDBServices().get(dbConnection.getDbType());
+		if (!dbService.connect(dbConnection.getConnectionParameters())) {
 			return new ResponseEntity<>("DB connection failure", HttpStatus.BAD_REQUEST);
 		}
 		dbService.close();

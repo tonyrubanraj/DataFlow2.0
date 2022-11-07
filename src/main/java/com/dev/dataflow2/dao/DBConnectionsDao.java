@@ -22,23 +22,23 @@ public class DBConnectionsDao {
 	@Autowired
 	DBConnectionsRepository dbConnectionsRepository;
 
-	public int createDBConnection(DBConnections dbConnections) {
+	public int create(DBConnections dbConnections) {
 		return dbConnectionsRepository.save(dbConnections).getConnectionId();
 	}
 
-	public DBConnections getDBConnectionById(int id) {
+	public DBConnections getById(int id) {
 		return dbConnectionsRepository.findById(id).get();
 	}
 
-	public DBConnections getDBConnectionsByName(int userId, String connectionName) {
-		List<DBConnections> dbConnections = getDBConnectionsByUserId(userId);
+	public DBConnections getByName(int userId, String connectionName) {
+		List<DBConnections> dbConnections = getByUserId(userId);
 		return dbConnections.isEmpty() ? null
 				: dbConnections.stream().filter(dbConnection -> dbConnection.getConnectionName().equals(connectionName))
 						.findFirst().orElse(null);
 	}
 
-	public boolean isDBConnectionExist(int userId, String connectionName) {
-		List<DBConnections> dbConnections = getDBConnectionsByUserId(userId);
+	public boolean exists(int userId, String connectionName) {
+		List<DBConnections> dbConnections = getByUserId(userId);
 		if (!dbConnections.isEmpty() && dbConnections.stream()
 				.anyMatch(dbConnection -> dbConnection.getConnectionName().equals(connectionName))) {
 			return true;
@@ -46,13 +46,13 @@ public class DBConnectionsDao {
 		return false;
 	}
 
-	public List<DBConnections> getDBConnections() {
+	public List<DBConnections> getAll() {
 		List<DBConnections> dbConnections = new ArrayList<DBConnections>();
 		dbConnectionsRepository.findAll().forEach(dbConnection -> dbConnections.add(dbConnection));
 		return dbConnections;
 	}
 
-	public List<DBConnections> getDBConnectionsByUserId(int userId) {
+	public List<DBConnections> getByUserId(int userId) {
 		List<DBConnections> dbConnections = new ArrayList<DBConnections>();
 		dbConnectionsRepository.findAll().forEach(dbConnection -> {
 			if (dbConnection.getUser().getUserid() == userId)
@@ -61,7 +61,7 @@ public class DBConnectionsDao {
 		return dbConnections;
 	}
 
-	public DBConnections updateDBConnection(DBConnections dbConnection) {
+	public DBConnections update(DBConnections dbConnection) {
 		return dbConnectionsRepository.save(dbConnection);
 	}
 

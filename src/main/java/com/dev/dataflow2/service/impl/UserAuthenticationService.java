@@ -28,7 +28,7 @@ public class UserAuthenticationService {
 	private static final int SALT_LENGTH = 30;
 
 	public int authenticateUser(String email, String password) {
-		User currentUser = userDao.getUserByEmail(email);
+		User currentUser = userDao.getByEmail(email);
 		if (currentUser == null) {
 			throw new ValueNotFoundException("User with email ::: " + email + " does not exist");
 		}
@@ -40,13 +40,13 @@ public class UserAuthenticationService {
 	}
 
 	public int registerUser(User newUser) {
-		List<User> users = userDao.getUsers();
+		List<User> users = userDao.getAll();
 		if (!users.isEmpty() && users.stream().anyMatch(user -> user.getEmail().equals(newUser.getEmail()))) {
 			throw new ValueAlreadyExistsException("User with email ::: " + newUser.getEmail() + " already exists");
 		}
 		String salt = PasswordUtils.getSalt(SALT_LENGTH);
 		newUser.setSalt(new String(salt));
 		newUser.setPassword(PasswordUtils.encryptPassword(newUser.getPassword(), salt.getBytes()));
-		return userDao.createUser(newUser);
+		return userDao.create(newUser);
 	}
 }

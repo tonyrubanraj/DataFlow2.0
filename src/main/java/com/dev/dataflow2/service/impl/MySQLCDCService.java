@@ -27,7 +27,7 @@ public class MySQLCDCService extends DatabaseCDCService {
 	BinaryLogClient client = null;
 
 	public void setProducerClient(DBConnectionsDao dbConnectionsDao, int connectionId) {
-		DBConnections source = dbConnectionsDao.getDBConnectionById(connectionId);
+		DBConnections source = dbConnectionsDao.getById(connectionId);
 		MySQLParameters mySQLParameters = (MySQLParameters) DatabaseUtils.getConnectionParamsMap(source.getDbType(),
 				source.getConnectionParameters());
 		String[] urlParts = mySQLParameters.getUrl().split("jdbc:mysql://");
@@ -46,12 +46,11 @@ public class MySQLCDCService extends DatabaseCDCService {
 	public void produceStreamingData(DBConnectionsDao dbConnectionsDao, TransferJobsDto transferJobsDto) {
 		try {
 			setProducerClient(dbConnectionsDao, transferJobsDto.getSourceId());
-			DBConnections destination = dbConnectionsDao.getDBConnectionById(transferJobsDto.getDestinationId());
-			DatabaseService destinationDBService = DatabaseUtils.getDBService(destination.getDbType());
+			DBConnections destination = dbConnectionsDao.getById(transferJobsDto.getDestinationId());
+			DatabaseService destinationDBService = DatabaseUtils.getDBServices().get(destination.getDbType());
 			List<String> destinationTables = transferJobsDto.getDestinationTables();
-			if (!destinationDBService.connect(destination.toDBConnectionsDto()))
+			if (!destinationDBService.connect(destination.getConnectionParameters()))
 				return;
-			destinationDBService.setSchema(transferJobsDto.getDestinationSchema());
 			client.registerEventListener(new EventListener() {
 
 				String table = null;
@@ -86,7 +85,7 @@ public class MySQLCDCService extends DatabaseCDCService {
 								}
 								jsonArr.put(jsonObject);
 							}
-							destinationDBService.insertRecordsFromJson(destinationTables.get(0), jsonArr);
+							destinationDBService.insertRecordsFromJson(transferJobsDto.getDestinationSchema(), destinationTables.get(0), jsonArr);
 						}
 					}
 				}

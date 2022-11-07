@@ -3,6 +3,7 @@
  */
 package com.dev.dataflow2.service.impl;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,11 +17,11 @@ import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.dev.dataflow2.dto.DBConnectionsDto;
 import com.dev.dataflow2.pojo.MySQLParameters;
 import com.dev.dataflow2.service.DatabaseService;
 import com.dev.dataflow2.utils.Constants;
 import com.dev.dataflow2.utils.DatabaseUtils;
+import com.google.gson.Gson;
 
 /**
  * @author tonyr
@@ -28,12 +29,27 @@ import com.dev.dataflow2.utils.DatabaseUtils;
  */
 public class MySQLService extends DatabaseService {
 
+	private Connection connection;
+	private String schema;
+
+	public Connection getConnection() {
+		return connection;
+	}
+
+	public String getSchema() {
+		return schema;
+	}
+
+	public void setSchema(String schema) {
+		this.schema = schema;
+	}
+
 	@Override
-	public boolean connect(DBConnectionsDto dbConnection) {
+	public boolean connect(String connectionParameters) {
 		try {
 			Class.forName(Constants.JDBC_CONNECTION);
-			MySQLParameters mySqlConnection = (MySQLParameters) DatabaseUtils
-					.getConnectionParamsMap(dbConnection.getDbType(), dbConnection.getConnectionParameters());
+			Gson gson = new Gson();
+			MySQLParameters mySqlConnection = gson.fromJson(connectionParameters, MySQLParameters.class);
 			this.connection = DriverManager.getConnection(mySqlConnection.getUrl(), mySqlConnection.getUsername(),
 					mySqlConnection.getPassword());
 			return this.connection != null ? true : false;
@@ -68,7 +84,7 @@ public class MySQLService extends DatabaseService {
 	}
 
 	@Override
-	public List<String> getTables() {
+	public List<String> getTables(String schema) {
 		List<String> tables = new ArrayList<String>();
 		try (Statement statement = connection.createStatement()) {
 			String query = "select table_name from information_schema.tables where table_schema = '" + schema + "'";
@@ -81,7 +97,7 @@ public class MySQLService extends DatabaseService {
 	}
 
 	@Override
-	public JSONArray getRecordsAsJson(String table) {
+	public JSONArray getRecordsAsJson(String schema, String table) {
 		try (Statement statement = connection.createStatement()) {
 			ResultSet resultSet = statement.executeQuery("Select * from " + schema + "." + table);
 			return DatabaseUtils.convertResultSetToJson(resultSet);
@@ -92,7 +108,7 @@ public class MySQLService extends DatabaseService {
 	}
 
 	@Override
-	public boolean insertRecordsFromJson(String table, JSONArray jsonArray) {
+	public boolean insertRecordsFromJson(String schema, String table, JSONArray jsonArray) {
 		try {
 			if (jsonArray != null && !jsonArray.isEmpty()) {
 				int columnCount = jsonArray.getJSONObject(0).length();
