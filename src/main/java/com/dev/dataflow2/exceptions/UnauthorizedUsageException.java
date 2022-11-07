@@ -10,12 +10,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author tonyr
  *
  */
-@ResponseStatus(HttpStatus.CONFLICT)
-public class UserAlreadyExistsException extends RuntimeException {
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
+public class UnauthorizedUsageException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
-
-	public UserAlreadyExistsException(String message){
+	
+	public UnauthorizedUsageException(String message) {
 		super(message);
 	}
+
 }

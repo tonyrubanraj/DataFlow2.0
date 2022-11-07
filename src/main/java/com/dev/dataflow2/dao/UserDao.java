@@ -22,21 +22,28 @@ public class UserDao {
 	@Autowired
 	UserRepository userRepository;
 
-	public int createUser(User user) {
+	public int create(User user) {
 		return userRepository.save(user).getUserid();
 	}
 
-	public User getUserById(int id) {
+	public User getById(int id) {
 		return userRepository.findById(id).get();
 	}
 
-	public List<User> getUsers() {
+	public User getByEmail(String email) {
+		List<User> users = getAll();
+		User user = users.isEmpty() ? null
+				: users.stream().filter(currentUser -> currentUser.getEmail().equals(email)).findFirst().orElse(null);
+		return user;
+	}
+
+	public List<User> getAll() {
 		List<User> users = new ArrayList<User>();
 		userRepository.findAll().forEach(user -> users.add(user));
 		return users;
 	}
 
-	public User updateUser(User user, int id) {
+	public User update(User user) {
 		return userRepository.save(user);
 	}
 

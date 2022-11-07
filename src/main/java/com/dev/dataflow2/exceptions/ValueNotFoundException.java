@@ -10,13 +10,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author tonyr
  *
  */
-@ResponseStatus(HttpStatus.UNAUTHORIZED)
-public class UnauthorizedUserException extends RuntimeException {
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ValueNotFoundException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
-	
-	public UnauthorizedUserException(String message) {
+
+	public ValueNotFoundException(String message) {
 		super(message);
 	}
-
 }
