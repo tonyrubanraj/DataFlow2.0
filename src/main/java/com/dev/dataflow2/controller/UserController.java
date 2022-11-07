@@ -39,4 +39,9 @@ public class UserController {
 		session.setAttribute(Constants.USER_ID, userId);
 		return new ResponseEntity<>("Signup completed", HttpStatus.CREATED);
 	}
+
+	@PostMapping("/test")
+	public ResponseEntity<String> test() {
+		return new ResponseEntity<>("TEst successful", HttpStatus.OK);
+	}
 }
